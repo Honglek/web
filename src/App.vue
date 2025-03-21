@@ -4,10 +4,14 @@
     <header class="bg-white shadow-md fixed w-full top-0 z-40">
       <div
         ref="headerRef"
-        class="container mx-auto px-4 py-4 flex flex-col items-center"
+        class="container mx-auto px-2 py-2 md:px-4 md:py-4 flex flex-col items-center"
       >
-        <img src="../src/assets/logo.png" alt="Logo" class="h-20 w-20 mb-0" />
-        <h1 class="text-xl font-bold text-gray-800 text-center">
+        <img
+          src="../src/assets/logo.png"
+          alt="Logo"
+          class="h-16 w-16 md:w-20 md:h-20 mb-0"
+        />
+        <h1 class="fs-sm font-bold text-gray-800 text-center">
           The River Coffee
         </h1>
       </div>
@@ -17,15 +21,15 @@
         <div class="container mx-auto px-4 py-2 overflow-x-auto scrollbar-hide">
           <div
             v-if="!categories || categories.length === 0"
-            class="flex space-x-4"
+            class="flex space-x-2 md:space-x-4"
           >
             <div
-              v-for="n in 4"
+              v-for="n in 6"
               :key="n"
               class="animate-pulse h-10 w-16 bg-gray-300 rounded-full"
             ></div>
           </div>
-          <div v-else class="flex space-x-4">
+          <div v-else class="flex space-x-2 md:space-x-4">
             <!-- All Categories Button -->
             <button
               @click="selectedCategory = null"
@@ -43,7 +47,7 @@
               :key="category.id"
               @click="selectCategory(category.name)"
               :class="[
-                'px-4 py-2 rounded-full whitespace-nowrap transition',
+                'px-4 py-2 rounded-full whitespace-nowrap transition fs-xs',
                 selectedCategory === category.name
                   ? 'bg-blue-500 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
@@ -76,7 +80,7 @@
             {{ categoryName }}
           </h2>
           <div
-            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6"
+            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-6"
           >
             <ProductCard
               v-for="product in categoryProducts"
@@ -117,6 +121,13 @@ const showModal = ref(false);
 // Computed property to group products by category
 const groupedProducts = computed(() => {
   const productsList = products.value; // Access the array properly here
+
+  // Scroll to the top of the page smoothly
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "smooth", // Ensures smooth scrolling
+  });
   if (selectedCategory.value) {
     // If category is selected, only show products from that category
     return {

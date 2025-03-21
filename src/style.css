@@ -11,3 +11,15 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+@layer components {
+  .fs-xs {
+    @apply text-xs sm:text-sm md:text-sm lg:text-base xl:text-base 2xl:text-lg;
+  }
+  .fs-sm {
+    @apply text-sm sm:text-base md:text-base lg:text-lg xl:text-lg 2xl:text-xl;
+  }
+  .fs-md {
+    @apply text-base sm:text-lg md:text-lg lg:text-xl xl:text-xl 2xl:text-2xl;
+  }
+}
