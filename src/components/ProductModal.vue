@@ -4,6 +4,7 @@
     class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
   >
     <div
+      ref="modalContainer"
       class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
     >
       <div class="relative">
@@ -33,12 +34,13 @@
                 <img
                   :src="product.image"
                   :alt="product.name_en"
+                  @contextmenu.prevent
                   class="w-full h-64 object-cover rounded-lg"
                 />
               </div>
               <div
                 v-else
-                class="w-full h-48 bg-slate-100 flex items-center justify-center"
+                class="w-full h-64 bg-slate-100 flex items-center justify-center rounded-lg"
               >
                 <img
                   :src="coffeeCupImage"
@@ -50,7 +52,7 @@
               <h2 class="font-bold mb-2 fs-md break-words w-full">
                 {{ product.name_en }}
               </h2>
-              <p class="text-gray-600 mb-4 fs-md">
+              <p class="text-gray-600 mb-4 fs-md break-words w-full">
                 {{ product.name_kh }}
               </p>
               <div class="flex items-center gap-4 mb-4">
@@ -64,7 +66,10 @@
                   {{ product.discount }}% OFF
                 </span>
               </div>
-              <p class="text-gray-600 mb-4 fs-sm">{{ product.description }}</p>
+              <p
+                class="text-gray-600 mb-4 fs-sm break-words w-full"
+                v-html="product.description"
+              ></p>
             </div>
           </div>
 
@@ -74,7 +79,6 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div
                 v-for="related in relatedProducts"
-                :key="related.code"
                 class="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100"
                 @click="$emit('select-product', related)"
               >
@@ -83,6 +87,7 @@
                     <img
                       :src="related.image"
                       :alt="related.name_en"
+                      @contextmenu.prevent
                       class="w-full h-32 object-cover rounded mb-2"
                     />
                   </div>
@@ -117,7 +122,14 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, onMounted, onUnmounted } from "vue";
+import {
+  ref,
+  defineProps,
+  defineEmits,
+  onMounted,
+  onUnmounted,
+  watch,
+} from "vue";
 import coffeeCupImage from "../assets/coffee.svg";
 
 const props = defineProps({
@@ -134,6 +146,28 @@ const props = defineProps({
     required: true,
   },
 });
+const modalContainer = ref(null);
+// Watch the product prop and scroll to the top when it changes
+watch(
+  () => props.product,
+  (newProduct, oldProduct) => {
+    if (newProduct !== oldProduct) {
+      // // Scroll to top whenever the product changes
+      // window.scrollTo({
+      //   top: 0,
+      //   left: 0,
+      //   behavior: "smooth", // Ensures smooth scrolling
+      // });
+      if (modalContainer.value) {
+        modalContainer.value.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth", // Smooth scroll
+        });
+      }
+    }
+  }
+);
 
 const emit = defineEmits(["close"]);
 

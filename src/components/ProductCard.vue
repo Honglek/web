@@ -4,7 +4,11 @@
   >
     <div class="w-full h-48 relative">
       <div v-if="product.image">
-        <img :src="product.image" class="w-full h-48 object-cover" />
+        <img
+          :src="product.image"
+          class="w-full h-48 object-cover"
+          @contextmenu.prevent
+        />
       </div>
       <div
         v-else
@@ -31,10 +35,10 @@
       </div>
       <p class="text-gray-600 truncate fs-xs">{{ product.name_kh }}</p>
       <p
+        v-html="product.description"
         class="text-gray-500 mb-2 h-9 sm:h-10 lg:h-12 2xl:h-14 bg-red-6001 overflow-hidden line-clamp-3 break-all fs-xs"
-      >
-        {{ product.description }}
-      </p>
+      ></p>
+      <!-- {{ product.description }} -->
       <div class="flex justify-between items-center absolute bottom-3">
         <button
           @click="$emit('view-details', product)"

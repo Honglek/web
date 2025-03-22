@@ -21,13 +21,15 @@
         <div class="container mx-auto px-4 py-2 overflow-x-auto scrollbar-hide">
           <div
             v-if="!categories || categories.length === 0"
-            class="flex space-x-2 md:space-x-4"
+            class="overflow-x-auto w-full"
           >
-            <div
-              v-for="n in 6"
-              :key="n"
-              class="animate-pulse h-10 w-16 bg-gray-300 rounded-full"
-            ></div>
+            <div class="flex space-x-2 md:space-x-4 flex-nowrap w-max">
+              <div
+                v-for="n in 4"
+                :key="n"
+                class="animate-pulse h-10 w-24 bg-gray-300 rounded-full"
+              ></div>
+            </div>
           </div>
           <div v-else class="flex space-x-2 md:space-x-4">
             <!-- All Categories Button -->
@@ -43,7 +45,7 @@
               All Categories
             </button>
             <button
-              v-for="category in categories"
+              v-for="category in validCategories"
               :key="category.id"
               @click="selectCategory(category.name)"
               :class="[
@@ -112,11 +114,20 @@ import Skeleton from "./components/skeleton.vue";
 
 import { useFirebase } from "./composables/useFirebase";
 const { documents: categories } = useFirebase("product_category");
-const { documents: products, error, isLoading } = useFirebase("products");
+const {
+  documents: products,
+  error,
+  isLoading,
+} = useFirebase("products", [
+  { field: "online", value: "true", operator: "==" },
+]);
 
 const selectedCategory = ref(null);
 const selectedProduct = ref(null);
 const showModal = ref(false);
+const headerRef = ref(null);
+const headerHeight = ref(0);
+const windowWidth = ref(window.innerWidth);
 
 // Computed property to group products by category
 const groupedProducts = computed(() => {
@@ -148,13 +159,49 @@ const groupedProducts = computed(() => {
 
 // Computed property to show related products (same category, but different product)
 const relatedProducts = computed(() => {
+  const selectedProductName = selectedProduct.value.name_en
+    .trim()
+    .toLowerCase();
   if (!selectedProduct.value) return [];
-  return products.value.filter(
-    // Use .value to access the array
-    (p) =>
-      p.category_name === selectedProduct.value.category_name &&
-      p.code !== selectedProduct.value.code
-  );
+  // const filteredProducts = products.value.filter(
+  //   (p) => p.category_name === selectedProduct.value.category_name
+  // );
+  const filteredProducts = products.value.filter((p) => {
+    const productName = p.name_en.trim().toLowerCase();
+    return productName != selectedProductName;
+  });
+
+  // Shuffle function to randomize the array
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+  };
+
+  // Shuffle filtered products
+  shuffleArray(filteredProducts);
+
+  if (windowWidth.value < 640) {
+    return filteredProducts.slice(0, 3);
+  } else if (windowWidth.value < 768) {
+    return filteredProducts.slice(0, 4);
+  } else {
+    return filteredProducts.slice(0, 6);
+  }
+  // return products.value.filter(
+  //   // Use .value to access the array
+  //   (p) => p.category_name === selectedProduct.value.category_name
+  // );
+});
+
+const validCategories = computed(() => {
+  if (!categories.value || categories.value.length === 0) return [];
+
+  const productCategories = new Set(products.value.map((p) => p.category_name)); // Get unique category names from products
+  return categories.value.filter((category) =>
+    productCategories.has(category.name)
+  ); // Only include categories that have products
 });
 
 const selectCategory = (category) => {
@@ -170,17 +217,25 @@ const viewProductDetails = (product) => {
 const closeModal = () => {
   showModal.value = false;
 };
-const headerRef = ref(null);
-const headerHeight = ref(0);
 
 const updateHeight = () => {
   if (headerRef.value) {
     headerHeight.value = headerRef.value.clientHeight;
   }
 };
+const lockScroll = () => {
+  document.body.style.overflow = "hidden";
+};
+
+const unlockScroll = () => {
+  document.body.style.overflow = "auto";
+};
 
 onMounted(() => {
   updateHeight(); // Get initial height
+  window.addEventListener("resize", () => {
+    windowWidth.value = window.innerWidth;
+  });
 
   // Create a ResizeObserver to watch for height changes
   const resizeObserver = new ResizeObserver(() => {
@@ -190,10 +245,19 @@ onMounted(() => {
   if (headerRef.value) {
     resizeObserver.observe(headerRef.value);
   }
+  // Lock scroll when modal is open
+  watch(showModal, (newVal) => {
+    if (newVal) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+  });
 
   // Cleanup observer when component unmounts
   onUnmounted(() => {
     resizeObserver.disconnect();
+    unlockScroll();
   });
 });
 
